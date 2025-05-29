@@ -33,8 +33,8 @@ add_library(controller SHARED
 )
 target_include_directories(controller
   PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
 target_link_libraries(controller PUBLIC
   ${geometry_msgs_TARGETS}
@@ -51,8 +51,8 @@ add_library(${library_name} SHARED
 )
 target_include_directories(${library_name}
   PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
 target_link_libraries(${library_name} PUBLIC
   angles::angles
@@ -67,7 +67,7 @@ target_link_libraries(${library_name} PUBLIC
   rclcpp_lifecycle::rclcpp_lifecycle
   ${rcl_interfaces_TARGETS}
   tf2_ros::tf2_ros
-  yaml-cpp::yaml-cpp
+  yaml-cpp
 )
 target_link_libraries(${library_name} PRIVATE
   rclcpp_components::component
@@ -79,8 +79,8 @@ add_library(pose_filter SHARED
 )
 target_include_directories(pose_filter
   PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
 target_link_libraries(pose_filter PUBLIC
   ${geometry_msgs_TARGETS}
@@ -95,8 +95,8 @@ add_executable(${executable_name}
 )
 target_include_directories(${executable_name}
   PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
 target_link_libraries(${executable_name} PRIVATE ${library_name} rclcpp::rclcpp)
 
@@ -107,8 +107,8 @@ add_library(simple_charging_dock SHARED
 )
 target_include_directories(simple_charging_dock
   PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
 target_link_libraries(simple_charging_dock PUBLIC
   ${geometry_msgs_TARGETS}
@@ -121,6 +121,7 @@ target_link_libraries(simple_charging_dock PUBLIC
   tf2_ros::tf2_ros
 )
 target_link_libraries(simple_charging_dock PRIVATE
+  angles::angles
   nav2_util::nav2_util_core
   pluginlib::pluginlib
   tf2::tf2
@@ -131,8 +132,8 @@ add_library(simple_non_charging_dock SHARED
 )
 target_include_directories(simple_non_charging_dock
   PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
 target_link_libraries(simple_non_charging_dock PUBLIC
   ${geometry_msgs_TARGETS}
@@ -145,6 +146,7 @@ target_link_libraries(simple_non_charging_dock PUBLIC
   tf2_ros::tf2_ros
 )
 target_link_libraries(simple_non_charging_dock PRIVATE
+  angles::angles
   nav2_util::nav2_util_core
   pluginlib::pluginlib
   tf2::tf2
@@ -167,17 +169,15 @@ install(DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
 )
 
-install(FILES test/test_dock_file.yaml
+install(DIRECTORY test/dock_files
   DESTINATION share/${PROJECT_NAME}/
 )
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_cmake_pytest REQUIRED)
   find_package(ament_index_cpp REQUIRED)
 
-  ament_lint_auto_find_test_dependencies()
   ament_find_gtest()
   add_subdirectory(test)
 endif()

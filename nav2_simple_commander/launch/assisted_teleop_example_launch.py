@@ -18,16 +18,9 @@ from pathlib import Path
 import tempfile
 
 from ament_index_python.packages import get_package_share_directory
-
 from launch import LaunchDescription
-from launch.actions import (
-    AppendEnvironmentVariable,
-    DeclareLaunchArgument,
-    ExecuteProcess,
-    IncludeLaunchDescription,
-    OpaqueFunction,
-    RegisterEventHandler,
-)
+from launch.actions import (AppendEnvironmentVariable, DeclareLaunchArgument, ExecuteProcess,
+                            IncludeLaunchDescription, OpaqueFunction, RegisterEventHandler)
 from launch.conditions import IfCondition
 from launch.event_handlers import OnShutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -35,7 +28,7 @@ from launch.substitutions import Command, LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
 
-def generate_launch_description():
+def generate_launch_description() -> LaunchDescription:
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
     sim_dir = get_package_share_directory('nav2_minimal_tb4_sim')
     desc_dir = get_package_share_directory('nav2_minimal_tb4_description')
@@ -65,7 +58,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('ros_gz_sim'), 'launch',
                          'gz_sim.launch.py')),
-        launch_arguments={'gz_args': ['-r -s ', world_sdf]}.items())
+        launch_arguments={'ign_args': ['-r -s ', world_sdf]}.items())
 
     remove_temp_sdf_file = RegisterEventHandler(event_handler=OnShutdown(
         on_shutdown=[
@@ -73,7 +66,7 @@ def generate_launch_description():
         ]))
 
     set_env_vars_resources = AppendEnvironmentVariable(
-            'GZ_SIM_RESOURCE_PATH',
+            'IGN_GAZEBO_RESOURCE_PATH',
             os.path.join(sim_dir, 'worlds'))
     start_gazebo_client_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -83,7 +76,7 @@ def generate_launch_description():
         ),
         condition=IfCondition(PythonExpression(
             ['not ', headless])),
-        launch_arguments={'gz_args': ['-v4 -g ']}.items(),
+        launch_arguments={'ign_args': ['-v4 -g ']}.items(),
     )
 
     spawn_robot_cmd = IncludeLaunchDescription(
@@ -114,7 +107,7 @@ def generate_launch_description():
             os.path.join(nav2_bringup_dir, 'launch', 'rviz_launch.py')
         ),
         condition=IfCondition(use_rviz),
-        launch_arguments={'namespace': '', 'use_namespace': 'False'}.items(),
+        launch_arguments={'namespace': ''}.items(),
     )
 
     # start navigation
@@ -134,7 +127,7 @@ def generate_launch_description():
     )
 
     set_env_vars_resources2 = AppendEnvironmentVariable(
-            'GZ_SIM_RESOURCE_PATH',
+            'IGN_GAZEBO_RESOURCE_PATH',
             str(Path(os.path.join(desc_dir)).parent.resolve()))
 
     ld = LaunchDescription()

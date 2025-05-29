@@ -19,17 +19,15 @@ from pathlib import Path
 import sys
 
 from ament_index_python.packages import get_package_share_directory
-from launch import LaunchDescription
-from launch import LaunchService
-from launch.actions import AppendEnvironmentVariable, ExecuteProcess
-from launch.actions import IncludeLaunchDescription
+from launch import LaunchDescription, LaunchService
+from launch.actions import AppendEnvironmentVariable, ExecuteProcess, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 import launch_ros.actions
 from launch_testing.legacy import LaunchTestService
 
 
-def main(argv=sys.argv[1:]):
-    testExecutable = os.getenv('TEST_EXECUTABLE')
+def main(argv: list[str] = sys.argv[1:]):  # type: ignore[no-untyped-def]
+    testExecutable = os.getenv('TEST_EXECUTABLE', '')
     sim_dir = get_package_share_directory('nav2_minimal_tb3_sim')
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
 
@@ -43,15 +41,15 @@ def main(argv=sys.argv[1:]):
     map_yaml_file = os.path.join(nav2_bringup_dir, 'maps', 'tb3_sandbox.yaml')
 
     set_env_vars_resources = AppendEnvironmentVariable(
-        'GZ_SIM_RESOURCE_PATH', os.path.join(sim_dir, 'models')
+        'IGN_GAZEBO_RESOURCE_PATH', os.path.join(sim_dir, 'models')
     )
     set_env_vars_resources2 = AppendEnvironmentVariable(
-        'GZ_SIM_RESOURCE_PATH',
+        'IGN_GAZEBO_RESOURCE_PATH',
         str(Path(os.path.join(sim_dir)).parent.resolve())
     )
 
     start_gazebo_server = ExecuteProcess(
-        cmd=['gz', 'sim', '-r', '-s', world_sdf_xacro],
+        cmd=['ign', 'gazebo', '-r', '-s', world_sdf_xacro],
         output='screen',
     )
 

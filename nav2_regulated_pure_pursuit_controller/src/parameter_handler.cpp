@@ -189,23 +189,57 @@ ParameterHandler::ParameterHandler(
     params_.use_cost_regulated_linear_velocity_scaling = false;
   }
 
-  dyn_params_handler_ = node->add_on_set_parameters_callback(
+  on_set_params_handler_ = node->add_on_set_parameters_callback(
     std::bind(
-      &ParameterHandler::dynamicParametersCallback,
+      &ParameterHandler::updateParametersCallback,
       this, std::placeholders::_1));
 }
 
 ParameterHandler::~ParameterHandler()
 {
   auto node = node_.lock();
-  if (dyn_params_handler_ && node) {
-    node->remove_on_set_parameters_callback(dyn_params_handler_.get());
+  if (on_set_params_handler_ && node) {
+    node->remove_on_set_parameters_callback(on_set_params_handler_.get());
   }
-  dyn_params_handler_.reset();
+  on_set_params_handler_.reset();
 }
+rcl_interfaces::msg::SetParametersResult ParameterHandler::validateParameterUpdatesCallback(
+  std::vector<rclcpp::Parameter> parameters)
+{
+  rcl_interfaces::msg::SetParametersResult result;
+  result.successful = true;
+  for (auto parameter : parameters) {
+    const auto & type = parameter.get_type();
+    const auto & name = parameter.get_name();
 
+    if (type == ParameterType::PARAMETER_DOUBLE) {
+      if (name == plugin_name_ + ".inflation_cost_scaling_factor" && parameter.as_double() <= 0.0) {
+        RCLCPP_WARN(
+        logger_, "The value inflation_cost_scaling_factor is incorrectly set, "
+        "it should be >0. Ignoring parameter update.");
+        result.successful = false;
+      } else if (parameter.as_double() < 0.0) {
+        RCLCPP_WARN(
+        logger_, "The value of parameter '%s' is incorrectly set to %f, "
+        "it should be >=0. Ignoring parameter update.",
+        name.c_str(), parameter.as_double());
+        result.successful = false;
+      }
+    } else if (type == ParameterType::PARAMETER_BOOL) {
+      if (name == plugin_name_ + ".allow_reversing") {
+        if (params_.use_rotate_to_heading && parameter.as_bool()) {
+          RCLCPP_WARN(
+            logger_, "Both use_rotate_to_heading and allow_reversing "
+            "parameter cannot be set to true. Rejecting parameter update.");
+          result.successful = false;
+        }
+      }
+    }
+  }
+  return result;
+}
 rcl_interfaces::msg::SetParametersResult
-ParameterHandler::dynamicParametersCallback(
+ParameterHandler::updateParametersCallback(
   std::vector<rclcpp::Parameter> parameters)
 {
   rcl_interfaces::msg::SetParametersResult result;
@@ -257,6 +291,10 @@ ParameterHandler::dynamicParametersCallback(
         params_.cancel_deceleration = parameter.as_double();
       } else if (name == plugin_name_ + ".rotate_to_heading_min_angle") {
         params_.rotate_to_heading_min_angle = parameter.as_double();
+      } else if (name == plugin_name_ + ".transform_tolerance") {
+        params_.transform_tolerance = parameter.as_double();
+      } else if (name == plugin_name_ + ".max_robot_pose_search_dist") {
+        params_.max_robot_pose_search_dist = parameter.as_double();
       }
     } else if (type == ParameterType::PARAMETER_BOOL) {
       if (name == plugin_name_ + ".use_velocity_scaled_lookahead_dist") {
@@ -281,6 +319,8 @@ ParameterHandler::dynamicParametersCallback(
           continue;
         }
         params_.allow_reversing = parameter.as_bool();
+      } else if (name == plugin_name_ + ".interpolate_curvature_after_goal") {
+        params_.interpolate_curvature_after_goal = parameter.as_bool();
       }
     }
   }
