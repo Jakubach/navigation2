@@ -74,6 +74,8 @@ public:
         BT::InputPort<bool>(
           "consider_unknown_as_obstacle", false,
           "Whether to consider unknown cost as obstacle"),
+        BT::InputPort<long unsigned int>("lookahead_points", 10,
+            "Remove collision goals up to that goal index"),
         BT::OutputPort<nav_msgs::msg::Goals>(
           "output_goals",
           "Goals with in-collision goals removed"),
@@ -89,6 +91,7 @@ private:
   bool consider_unknown_as_obstacle_;
   double cost_threshold_;
   nav_msgs::msg::Goals input_goals_;
+  long unsigned int lookahead_points_;
 };
 
 }  // namespace nav2_behavior_tree

@@ -198,7 +198,7 @@ class BasicNavigator(Node):
         goal_msg.poses = poses
         goal_msg.behavior_tree = behavior_tree
 
-        self.info(f'Navigating with {len(goal_msg.poses)} goals....')
+        self.info(f'Navigating with {len(goal_msg.poses.goals)} goals....')
         send_goal_future = self.nav_through_poses_client.send_goal_async(
             goal_msg, self._feedbackCallback
         )

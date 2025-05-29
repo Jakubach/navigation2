@@ -39,6 +39,14 @@ void RemoveInCollisionGoals::on_tick()
   getInput("cost_threshold", cost_threshold_);
   getInput("input_goals", input_goals_);
   getInput("consider_unknown_as_obstacle", consider_unknown_as_obstacle_);
+  getInput("lookahead_points", lookahead_points_); 
+
+  auto end_goal = input_goals_.goals.begin();
+  if (input_goals_.goals.size() >= lookahead_points_) {
+    end_goal = input_goals_.goals.begin() + lookahead_points_;
+  } else {
+    end_goal = input_goals_.goals.end();
+  }
 
   if (input_goals_.goals.empty()) {
     setOutput("output_goals", input_goals_);
@@ -48,8 +56,8 @@ void RemoveInCollisionGoals::on_tick()
   request_ = std::make_shared<nav2_msgs::srv::GetCosts::Request>();
   request_->use_footprint = use_footprint_;
 
-  for (const auto & goal : input_goals_.goals) {
-    request_->poses.push_back(goal);
+  for (auto it = input_goals_.goals.begin(); it != end_goal; it ++){
+    request_->poses.push_back(*it);
   }
 }
 
@@ -89,6 +97,13 @@ BT::NodeStatus RemoveInCollisionGoals::on_completion(
         nav2_msgs::msg::WaypointStatus::SKIPPED;
     }
   }
+
+  if (lookahead_points_ < input_goals_.goals.size()) {
+    for (size_t i = lookahead_points_; i < input_goals_.goals.size(); ++i) {
+      valid_goal_poses.goals.push_back(input_goals_.goals[i]);
+    }
+  }
+
   // Inform if all goals have been removed
   if (valid_goal_poses.goals.empty()) {
     RCLCPP_INFO(
